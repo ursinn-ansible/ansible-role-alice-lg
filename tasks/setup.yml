@@ -1,0 +1,39 @@
+---
+- name: Create config directory
+  ansible.builtin.file:
+    path: /opt/app-alice-lg/config
+    state: directory
+    owner: '1000'
+    group: '1000'
+    mode: 0755
+
+- name: Ensure alice-lg/alice-lg image is pulled
+  community.docker.docker_image:
+    name: ghcr.io/alice-lg/alice-lg:6.0.0
+    source: pull
+    force_source: yes
+  register: pulled
+
+- name: Remove alice-lg container
+  community.docker.docker_container:
+    name: alice-lg
+    state: absent
+  when: pulled.changed
+
+- name: Get infos on alice-lg container
+  community.docker.docker_container_info:
+    name: alice-lg
+  register: result
+
+- name: Create alice-lg container
+  ansible.builtin.shell: |
+    docker run -d \
+    --name=alice-lg \
+    -v /opt/app-alice-lg/config:/etc/alice-lg:Z \
+    --network=app-network \
+    --restart unless-stopped \
+    ghcr.io/alice-lg/alice-lg:6.0.0
+  when:
+    pulled.changed
+    or
+    result.exists == false
