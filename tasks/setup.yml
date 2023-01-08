@@ -7,9 +7,9 @@
     group: '1000'
     mode: 0755
 
-- name: Ensure alice-lg/alice-lg image is pulled
+- name: Ensure as202427/alice-lg image is pulled
   community.docker.docker_image:
-    name: ghcr.io/alice-lg/alice-lg:6.0.0
+    name: docker.io/as202427/alice-lg:6.0.0
     source: pull
     force_source: yes
   register: pulled
@@ -32,7 +32,7 @@
     -v /opt/app-alice-lg/config:/etc/alice-lg:Z \
     --network=app-network \
     --restart unless-stopped \
-    ghcr.io/alice-lg/alice-lg:6.0.0
+    docker.io/as202427/alice-lg:6.0.0
   when:
     pulled.changed
     or
