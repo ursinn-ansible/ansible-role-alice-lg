@@ -3,8 +3,6 @@
   ansible.builtin.file:
     path: /opt/app-alice-lg/config
     state: directory
-    owner: '1000'
-    group: '1000'
     mode: 0755
 
 - name: Ensure as202427/alice-lg image is pulled
@@ -26,13 +24,19 @@
   register: result
 
 - name: Create alice-lg container
-  ansible.builtin.shell: |
-    docker run -d \
-    --name=alice-lg \
-    -v /opt/app-alice-lg/config:/etc/alice-lg:Z \
-    --network=app-network \
-    --restart unless-stopped \
-    docker.io/as202427/alice-lg:6.0.0
+  community.docker.docker_container:
+    image: docker.io/as202427/alice-lg:6.0.0
+    mounts:
+      - source: /opt/app-alice-lg/config
+        target: /etc/alice-lg
+        type: bind
+    name: alice-lg
+    networks:
+      - app-network
+    published_ports:
+      - 7340:7340
+    restart_policy: unless-stopped
+    state: started
   when:
     pulled.changed
     or
